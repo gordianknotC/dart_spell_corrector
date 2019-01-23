@@ -1,0 +1,172 @@
+import 'package:colorize/colorize.dart' show Colorize, Styles;
+import 'dart:io';
+
+
+enum ELevel {
+   log,
+   info,
+   debug,
+   warning,
+   critical,
+   sys,
+   error,
+   level0,
+   level1,
+   level2,
+   level3,
+   level4,
+}
+
+const LEVEL0 = [ELevel.log, ELevel.info, ELevel.error, ELevel.debug, ELevel.warning, ELevel.critical, ELevel.sys];
+const LEVEL1 = [ELevel.info, ELevel.error, ELevel.debug, ELevel.warning, ELevel.critical, ELevel.sys];
+const LEVEL2 = [ELevel.error, ELevel.debug, ELevel.warning, ELevel.critical, ELevel.sys];
+const LEVEL3 = [ELevel.error, ELevel.warning, ELevel.critical, ELevel.sys];
+const LEVEL4 = [ELevel.error, ELevel.critical, ELevel.sys];
+const LEVELS = [
+   ELevel.error, ELevel.debug, ELevel.warning, ELevel.critical, ELevel.sys
+];
+
+
+void colour(String text,
+           {Styles front,
+              Styles back,
+              bool isUnderline: false,
+              bool isBold: false,
+              bool isDark: false,
+              bool isItalic: false,
+              bool isReverse: false}) {
+   Colorize string = new Colorize(text);
+   
+   if (front != null) {
+      string.apply(front);
+   }
+   
+   if (back != null) {
+      string.apply(back);
+   }
+   
+   if (isUnderline) {
+      string.apply(Styles.UNDERLINE);
+   }
+   
+   if (isBold) {
+      string.apply(Styles.BOLD);
+   }
+   
+   if (isDark) {
+      string.apply(Styles.DARK);
+   }
+   
+   if (isItalic) {
+      string.apply(Styles.ITALIC);
+   }
+   
+   if (isReverse) {
+      string.apply(Styles.REVERSE);
+   }
+
+   stdout.write('$string\n');
+}
+
+class Logger {
+   List<ELevel> levels;
+   String name;
+   
+   Logger({this.name, this.levels = LEVELS}) {
+      var error = () {
+         if (levels.length > 1)
+            throw Exception("Collection levels 'level0~level4' can't be used combining with regular level 'log, info, erro...'");
+      };
+      if (levels.contains(ELevel.level0)) {
+         error();
+         levels = LEVEL0;
+      } else if (levels.contains(ELevel.level1)) {
+         error();
+         levels = LEVEL1;
+      } else if (levels.contains(ELevel.level2)) {
+         error();
+         levels = LEVEL2;
+      } else if (levels.contains(ELevel.level3)) {
+         error();
+         levels = LEVEL3;
+      } else if (levels.contains(ELevel.level4)) {
+         error();
+         levels = LEVEL4;
+      }
+   }
+   
+   get moduleText {
+      var c = Colorize('[$name] ');
+      c.apply(Styles.DEFAULT);
+      return c.toString();
+   }
+   
+   void call(String msg, [ELevel level = ELevel.info]) {
+      if (levels.contains(level)) {
+         switch (level) {
+            case ELevel.warning:
+               warning(msg);
+               break;
+            case ELevel.error:
+               error(msg);
+               break;
+            case ELevel.critical:
+               error(msg);
+               break;
+            case ELevel.debug:
+               debug(msg);
+               break;
+            case ELevel.info:
+               info(msg);
+               break;
+            default:
+               log(msg);
+               break;
+         }
+      }
+   }
+   
+   void log(Object msg, {bool show_module: true}) {
+      if (!levels.contains(ELevel.log)) return;
+      if (show_module) stdout.write(moduleText);
+      colour(msg.toString(), front: Styles.DARK_GRAY, isBold: false, isItalic: false, isUnderline: false);
+   }
+   
+   void info(Object msg, {bool show_module: true}) {
+      if (!levels.contains(ELevel.info)) return;
+      if (show_module) stdout.write(moduleText);
+      colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: false, isItalic: false, isUnderline: false);
+   }
+   
+   void sys(Object msg, {bool show_module: true}){
+      if (!levels.contains(ELevel.sys)) return;
+      if (show_module) stdout.write(moduleText);
+      colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: true, isItalic: false, isUnderline: false);
+   }
+   
+   void debug(Object msg, {bool show_module: true}) {
+      if (!levels.contains(ELevel.debug)) return;
+      if (show_module) stdout.write(moduleText);
+      colour(msg.toString(), front: Styles.LIGHT_BLUE, isBold: false, isItalic: false, isUnderline: false);
+   }
+   
+   void critical(Object msg, {bool show_module: true}) {
+      if (!levels.contains(ELevel.critical)) return;
+      if (show_module) stdout.write(moduleText);
+      colour(msg.toString(), front: Styles.LIGHT_RED, isBold: true, isItalic: false, isUnderline: false);
+   }
+   
+   void error(Object msg, {bool show_module: true}) {
+      if (!levels.contains(ELevel.error)) return;
+      if (show_module) stdout.write(moduleText);
+      colour(msg.toString(), front: Styles.RED, isBold: false, isItalic: false, isUnderline: false);
+   }
+   
+   void warning(Object msg, {bool show_module: true}) {
+      if (!levels.contains(ELevel.warning)) return;
+      if (show_module) stdout.write(moduleText);
+      colour(msg.toString(), front: Styles.YELLOW, isBold: true, isItalic: false, isUnderline: false);
+   }
+}
+
+final _log = Logger(name: 'common', levels: [ELevel.level3]);
