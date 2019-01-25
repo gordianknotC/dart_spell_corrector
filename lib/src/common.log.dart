@@ -169,4 +169,3 @@ class Logger {
    }
 }
 
-final _log = Logger(name: 'common', levels: [ELevel.level3]);

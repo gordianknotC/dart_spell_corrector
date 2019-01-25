@@ -1,5 +1,5 @@
 import 'package:common/src/common.log.dart';
-import 'package:colorize/colorize.dart' show color, Colorize, Styles;
+import 'package:colorize/colorize.dart' show   Colorize, Styles;
 
 
 typedef _TEndsStartsWith = bool Function(String source, String end);
@@ -7,7 +7,6 @@ typedef _TSubstring = String Function(String source, int start, int end);
 
 
 final _log = Logger(name: 'common', levels: [ELevel.level3]);
-final _LETTERS = 'abcdefghijklmnopqrstuvwxyz'.split('');
 final _UPPERCACE_A = 'A'.codeUnitAt(0);
 final _UPPERCASE_Z = 'Z'.codeUnitAt(0);
 final _LOWERCASE_A = 'a'.codeUnitAt(0);
@@ -36,15 +35,13 @@ T guard<T>(T expression(), Object message, {bool raiseOnly: true, String error =
          } catch(e, s) {
             rethrow;
          }
-      };
+      }
    } else {
       try {
          return expression();
       } catch (e, s){
          var trace = StackTrace.fromString(message);
          throw Exception("[$error] $trace\n$e \n$s");
-         _log("[$error] $trace\n$e \n$s", ELevel.error);
-         rethrow;
       }
    }
 }
@@ -59,9 +56,12 @@ void raise(Object message, {String error = 'AnError'}) {
    } catch (e) {}
 }
 
-
-
-
+String ignoreWhiteSpace(String x){
+   return x.split('\n')
+      .where((x) => x.trim() != '')
+      .map((x) => x.trim())
+      .join(' ');
+}
 
 void GP(String message, Function(String _) cb, [int level = 1]) {
    const String H = '-';
@@ -91,10 +91,10 @@ class Tuple<K, V> {
 }
 
 /*class Triple<K, M, V> {
-   K key;
-   V value;
-   M middle;
-   Triple(this.key, this.middle, this.value);
+   K father;
+   V mother;
+   M child;
+   Triple(this.father, this.mother, this.child);
 }*/
 
 Map<K, V>

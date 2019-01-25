@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:test/test.dart';
 import 'package:common/src/common.spell.dart' as SP;
 import 'package:common/src/common.spell.dart';
@@ -61,7 +60,6 @@ void main() {
       });
       
       test('transposes("hello")', () {
-         var result = [['h', 'lelo'], ['he', 'llo'], ['hel', 'ol']];
          print(Behaviors.transposes(Behaviors.splits("hello")).toList());
          expect(
             Behaviors.transposes(Behaviors.splits('hello')).toList(),
@@ -143,7 +141,6 @@ void main() {
       TypoSuggest s2, s3;
       setUp((){
          var d1 = ['hello', 'world'];
-         var d2 = DICT;
          s1 = Spell(dict:d1.toSet(), camelCase: false, useCache: false, preRender: false);
          s2 = TypoSuggest();
          s3 = TypoSuggest(matcher: (db, typing){
