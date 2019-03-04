@@ -65,14 +65,20 @@ void colour(String text,
       string.apply(Styles.REVERSE);
    }
 
-   stdout.write('$string\n');
+   Logger.write('$string\n');
 }
 
 class Logger {
+   static bool production = false;
+   static void Function(String m) write = (m) => stdout.write(m);
+
    List<ELevel> levels;
    String name;
    
-   Logger({this.name, this.levels = LEVELS}) {
+   Logger({this.name, this.levels = LEVELS, void writer(String m)}) {
+      if (writer != null){
+         Logger.write = writer;
+      }
       var error = () {
          if (levels.length > 1)
             throw Exception("Collection levels 'level0~level4' can't be used combining with regular level 'log, info, erro...'");
@@ -127,44 +133,44 @@ class Logger {
    }
    
    void log(Object msg, {bool show_module: true}) {
-      if (!levels.contains(ELevel.log)) return;
-      if (show_module) stdout.write(moduleText);
+      if (!levels.contains(ELevel.log) || production) return;
+      if (show_module) write(moduleText);
       colour(msg.toString(), front: Styles.DARK_GRAY, isBold: false, isItalic: false, isUnderline: false);
    }
    
    void info(Object msg, {bool show_module: true}) {
-      if (!levels.contains(ELevel.info)) return;
-      if (show_module) stdout.write(moduleText);
+      if (!levels.contains(ELevel.info) || production) return;
+      if (show_module) write(moduleText);
       colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: false, isItalic: false, isUnderline: false);
    }
    
    void sys(Object msg, {bool show_module: true}){
-      if (!levels.contains(ELevel.sys)) return;
-      if (show_module) stdout.write(moduleText);
+      if (!levels.contains(ELevel.sys) || production) return;
+      if (show_module) write(moduleText);
       colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: true, isItalic: false, isUnderline: false);
    }
    
    void debug(Object msg, {bool show_module: true}) {
-      if (!levels.contains(ELevel.debug)) return;
-      if (show_module) stdout.write(moduleText);
+      if (!levels.contains(ELevel.debug) || production) return;
+      if (show_module) write(moduleText);
       colour(msg.toString(), front: Styles.LIGHT_BLUE, isBold: false, isItalic: false, isUnderline: false);
    }
    
    void critical(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.critical)) return;
-      if (show_module) stdout.write(moduleText);
+      if (show_module) write(moduleText);
       colour(msg.toString(), front: Styles.LIGHT_RED, isBold: true, isItalic: false, isUnderline: false);
    }
    
    void error(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.error)) return;
-      if (show_module) stdout.write(moduleText);
+      if (show_module) write(moduleText);
       colour(msg.toString(), front: Styles.RED, isBold: false, isItalic: false, isUnderline: false);
    }
    
    void warning(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.warning)) return;
-      if (show_module) stdout.write(moduleText);
+      if (show_module) write(moduleText);
       colour(msg.toString(), front: Styles.YELLOW, isBold: true, isItalic: false, isUnderline: false);
    }
 }

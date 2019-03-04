@@ -33,7 +33,8 @@ T guard<T>(T expression(), Object message, {bool raiseOnly: true, String error =
             _log("[$error] $trace\n$e \n$s", ELevel.error);
             rethrow;
          } catch(e, s) {
-            rethrow;
+            //untested: unbolock this if ...
+            //rethrow;
          }
       }
    } else {
