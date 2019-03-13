@@ -71,13 +71,22 @@ void colour(String text,
 class Logger {
    static bool production = false;
    static void Function(String m) write = (m) => stdout.write(m);
-
+   static IOSink file_sink;
+   static close_sink() => file_sink.close();
+   
    List<ELevel> levels;
    String name;
    
-   Logger({this.name, this.levels = LEVELS, void writer(String m)}) {
+   Logger({this.name, this.levels = LEVELS, void writer(String m), String stream_path}) {
       if (writer != null){
          Logger.write = writer;
+      }
+      if (stream_path != null){
+         file_sink = File(stream_path).openWrite();
+         Logger.write = (String m){
+           // writer(m);
+           file_sink.write(m);
+         };
       }
       var error = () {
          if (levels.length > 1)

@@ -12,6 +12,10 @@ final _UPPERCASE_Z = 'Z'.codeUnitAt(0);
 final _LOWERCASE_A = 'a'.codeUnitAt(0);
 final _LOWERCASE_Z = 'z'.codeUnitAt(0);
 
+String ename<T>(T e){
+   return e.toString().split('.')[1];
+}
+
 void tryRaise(Function expression, [Object message]) {
    try {
       try {
@@ -30,7 +34,7 @@ T guard<T>(T expression(), Object message, {bool raiseOnly: true, String error =
       } catch(e, s){
          try {
             var trace = StackTrace.fromString(message);
-            _log("[$error] $trace\n$e \n$s", ELevel.error);
+            _log("\n[$error] $trace\n$e \n$s", ELevel.error);
             rethrow;
          } catch(e, s) {
             //untested: unbolock this if ...
@@ -42,7 +46,7 @@ T guard<T>(T expression(), Object message, {bool raiseOnly: true, String error =
          return expression();
       } catch (e, s){
          var trace = StackTrace.fromString(message);
-         throw Exception("[$error] $trace\n$e \n$s");
+         throw Exception("\n[$error] $trace\n$e \n$s");
       }
    }
 }
@@ -51,7 +55,7 @@ void raise(Object message, {String error = 'AnError'}) {
       try {
          throw(message);
       } catch (e, s) {
-         _log("[$error] $message\n$e \n$s", ELevel.error);
+         _log("\n[$error] $message\n$e \n$s", ELevel.error);
          rethrow;
       }
    } catch (e) {}
