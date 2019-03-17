@@ -1,3 +1,6 @@
+import 'dart:math';
+import 'dart:typed_data';
+
 import 'package:common/src/common.log.dart';
 import 'package:colorize/colorize.dart' show   Colorize, Styles;
 
@@ -46,6 +49,8 @@ T guard<T>(T expression(), Object message, {bool raiseOnly: true, String error =
          return expression();
       } catch (e, s){
          var trace = StackTrace.fromString(message);
+         if (Logger.file_sink != null)
+            _log("\n[$error] $trace\n$e \n$s", ELevel.error);
          throw Exception("\n[$error] $trace\n$e \n$s");
       }
    }
@@ -286,6 +291,11 @@ class FN {
       return List.filled(t, material);
    }*/
    
+   static T getEltOrNull<T>(List<T> elements, int id){
+      final l = elements.length;
+      if (id < l ) return elements[id];
+      return null;
+   }
    
    
    static E
@@ -613,6 +623,82 @@ class FN {
                 ? _keepIndent(v.toString(), level)
                 : vstring;
       return "\t" * (level) + '$t $vstring';
+   }
+}
+
+
+
+class TwoDBytes {
+   Uint8List bytes;
+   TwoDBytes(List<List<int>> twoD_list){
+      bytes = twoDtoOneDList(twoD_list);
+   }
+   
+   TwoDBytes.fromOneD(this.bytes);
+   
+   static Uint8List twoDtoOneDList(List<List<int>> tdim){
+      List<int> ret = [tdim.length];
+      print('convert ${tdim.length} lists into one list');
+      for (var i = 0; i < tdim.length; ++i) {
+         final Uint8List rec_data = Uint8List.fromList(tdim[i]);
+         final rec_data_length = rec_data.lengthInBytes;
+         final length_in_bytes = intToBytes(rec_data_length);
+         print('flag: $i');
+         print('rec_data: ${rec_data.sublist(0,20)}...');
+         print('rec_data_legnth in bytes: $rec_data_length');
+         print('num_of_length_bytes: $length_in_bytes, ${bytesToInt(length_in_bytes)}');
+         ret.add(8);
+         ret.addAll(length_in_bytes);
+         ret.addAll(rec_data);
+      }
+      return Uint8List.fromList(ret);
+   }
+   
+   static num bytesToInt(Uint8List bytes){
+      num number = 0;
+      for (var i = 0; i < bytes.length; ++i) {
+         var n = bytes[i];
+         if (i == 0) number += n;
+         else        number += n + (n * pow(255, i));
+      }
+      return number;
+   }
+   
+   static Uint8List intToBytes(int number){
+      final list =  Uint64List.fromList([number]);
+      return Uint8List.view(list.buffer);
+   }
+   
+   int get length{
+      return bytes.lengthInBytes;
+   }
+   
+   int get recordsLength{
+      return bytes[0];
+   }
+   
+   Stream<Uint8List> get records async* {
+      var r = 2;
+      var l = 2;
+      List<int> data_length;
+      int numberof_data_length;
+      try {
+         for (var flag = 0; flag < recordsLength; ++flag) {
+            l = r;
+            data_length = Uint8List.fromList(bytes.sublist(l, l + 8));
+            numberof_data_length = bytesToInt(data_length) as int;
+            l += 8;
+            r = l + numberof_data_length + 1;
+            yield Uint8List.fromList(bytes.sublist(l, r - 1));
+         }
+      } on RangeError catch(e){
+         throw Exception(
+            'lbound:$l, rbound:$r, data_length:$data_length, numberof_data_length: $numberof_data_length'
+            '\n${StackTrace.fromString(e.toString())}');
+      } catch(e){
+         throw Exception(e);
+      }
+      
    }
 }
 

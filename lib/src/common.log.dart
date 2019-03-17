@@ -111,31 +111,31 @@ class Logger {
    }
    
    get moduleText {
-      var c = Colorize('[$name] ');
+      var c = Colorize('\n[$name] ');
       c.apply(Styles.DEFAULT);
       return c.toString();
    }
    
-   void call(String msg, [ELevel level = ELevel.info]) {
+   void call(String msg, [ELevel level = ELevel.info, bool show_module = true]) {
       if (levels.contains(level)) {
          switch (level) {
             case ELevel.warning:
-               warning(msg);
+               warning(msg, show_module: show_module);
                break;
             case ELevel.error:
-               error(msg);
+               error(msg, show_module: show_module);
                break;
             case ELevel.critical:
-               error(msg);
+               error(msg, show_module: show_module);
                break;
             case ELevel.debug:
-               debug(msg);
+               debug(msg, show_module: show_module);
                break;
             case ELevel.info:
-               info(msg);
+               info(msg, show_module: show_module);
                break;
             default:
-               log(msg);
+               log(msg, show_module: show_module);
                break;
          }
       }
