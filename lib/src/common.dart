@@ -630,24 +630,26 @@ class FN {
 
 class TwoDBytes {
    Uint8List bytes;
-   TwoDBytes(List<List<int>> twoD_list){
-      bytes = twoDtoOneDList(twoD_list);
+   int lengthByes = 4;
+   
+   TwoDBytes (List<List<int>> twoD_list, {this.lengthByes = 4}) {
+      bytes = twoDtoOneDList(twoD_list, lengthByes);
    }
    
    TwoDBytes.fromOneD(this.bytes);
    
-   static Uint8List twoDtoOneDList(List<List<int>> tdim){
+   static Uint8List twoDtoOneDList(List<List<int>> tdim, [int lengthByes = 4]){
       List<int> ret = [tdim.length];
       print('convert ${tdim.length} lists into one list');
       for (var i = 0; i < tdim.length; ++i) {
          final Uint8List rec_data = Uint8List.fromList(tdim[i]);
          final rec_data_length = rec_data.lengthInBytes;
-         final length_in_bytes = intToBytes(rec_data_length);
+         final length_in_bytes = intToBytes(rec_data_length, lengthBytes: lengthByes);
          print('flag: $i');
          print('rec_data: ${rec_data.sublist(0,20)}...');
          print('rec_data_legnth in bytes: $rec_data_length');
          print('num_of_length_bytes: $length_in_bytes, ${bytesToInt(length_in_bytes)}');
-         ret.add(8);
+         ret.add(lengthByes);
          ret.addAll(length_in_bytes);
          ret.addAll(rec_data);
       }
@@ -659,14 +661,14 @@ class TwoDBytes {
       for (var i = 0; i < bytes.length; ++i) {
          var n = bytes[i];
          if (i == 0) number += n;
-         else        number += n + (n * pow(255, i));
+         else        number += (n * pow(256, i));
       }
       return number;
    }
    
-   static Uint8List intToBytes(int number){
+   static Uint8List intToBytes(int number, {int lengthBytes = 4}){
       final list =  Uint64List.fromList([number]);
-      return Uint8List.view(list.buffer);
+      return Uint8List.view(list.buffer).sublist(0, lengthBytes);
    }
    
    int get length{
@@ -685,9 +687,9 @@ class TwoDBytes {
       try {
          for (var flag = 0; flag < recordsLength; ++flag) {
             l = r;
-            data_length = Uint8List.fromList(bytes.sublist(l, l + 8));
+            data_length = Uint8List.fromList(bytes.sublist(l, l + lengthByes));
             numberof_data_length = bytesToInt(data_length) as int;
-            l += 8;
+            l += lengthByes;
             r = l + numberof_data_length + 1;
             yield Uint8List.fromList(bytes.sublist(l, r - 1));
          }
