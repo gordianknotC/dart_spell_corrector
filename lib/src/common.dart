@@ -624,10 +624,22 @@ class FN {
                 : vstring;
       return "\t" * (level) + '$t $vstring';
    }
+   
+   static void ensureKeys<T>(Map<T, dynamic> map, List<T> keys){
+      final result = <T>[];
+      for (final key in map.keys){
+         if (!keys.contains(key) || map[key] == null){
+            result.add(key);
+         }
+      }
+      if (result.length > 0){
+         throw Exception('Map keys missmatched. following keys are missing:\n ${result.map((m) => m.toString()).toList()}');
+      }
+   }
 }
 
 
-
+// fixme: size overflow detection (bigger than 4 bytes)
 class TwoDBytes {
    Uint8List bytes;
    int lengthByes = 4;
