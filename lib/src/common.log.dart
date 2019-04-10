@@ -68,7 +68,17 @@ void colour(String text,
    Logger.write('$string\n');
 }
 
-class Logger {
+abstract class LoggerSketch{
+   void log(Object logLevel, {bool show_module: true});
+   void sys(Object logLevel, {bool show_module: true});
+   void info(Object logLevel, {bool show_module: true});
+   void debug(Object logLevel, {bool show_module: true});
+   void warning(Object logLevel, {bool show_module: true});
+   void critical(Object logLevel, {bool show_module: true});
+   void error(Object logLevel, {bool show_module: true});
+}
+
+class Logger implements LoggerSketch {
    static bool production = false;
    static void Function(String m) write = (m) => stdout.write(m);
    static IOSink file_sink;
