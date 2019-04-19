@@ -636,6 +636,16 @@ class FN {
          throw Exception('Map keys missmatched. following keys are missing:\n ${result.map((m) => m.toString()).toList()}');
       }
    }
+
+  static void updateMembers(Map<String, dynamic> target, Map<String, dynamic> source, {List<String> members, bool removeFromSource = false}) {
+      members.forEach((m){
+         if (source.containsKey(m)){
+            target[m] = source[m];
+            if (removeFromSource)
+               source.remove(m);
+         }
+      });
+  }
 }
 
 
