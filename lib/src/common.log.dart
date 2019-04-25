@@ -76,27 +76,39 @@ abstract class LoggerSketch{
    void warning(Object logLevel, {bool show_module: true});
    void critical(Object logLevel, {bool show_module: true});
    void error(Object logLevel, {bool show_module: true});
+   void call(String msg, [ELevel level = ELevel.info, bool show_module = true]);
 }
 
 class Logger implements LoggerSketch {
+   static String logMem = '';
    static bool production = false;
    static void Function(String m) write = (m) => stdout.write(m);
    static IOSink file_sink;
    static close_sink() => file_sink.close();
-   
+   static bool disableFileSink = false;
    List<ELevel> levels;
    String name;
    
-   Logger({this.name, this.levels = LEVELS, void writer(String m), String stream_path}) {
+   Logger({this.name, this.levels = LEVELS, void writer(String m), String stream_path, bool dumpOnMemory = false}) {
       if (writer != null){
          Logger.write = writer;
       }
       if (stream_path != null){
-         file_sink = File(stream_path).openWrite();
+         if (!dumpOnMemory){
+            file_sink = File(stream_path).openWrite();
+            Logger.write = (String m){
+               // writer(m);
+               file_sink.write(m);
+            };
+         }
+      }
+      if (dumpOnMemory){
          Logger.write = (String m){
-           // writer(m);
-           file_sink.write(m);
+            // writer(m);
+            logMem += 'm\n';
+            stdout.write(m);
          };
+         file_sink?.close();
       }
       var error = () {
          if (levels.length > 1)
