@@ -646,6 +646,16 @@ class FN {
          }
       });
   }
+
+  static int countOn<T>(List<T> data, bool Function(T d) condition) {
+      int result = 0;
+     for (var i = 0; i < data.length; ++i) {
+        var o = data[i];
+        if (condition(o))
+           result ++;
+     }
+     return result;
+  }
 }
 
 
