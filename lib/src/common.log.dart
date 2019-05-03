@@ -80,12 +80,14 @@ abstract class LoggerSketch{
 }
 
 class Logger implements LoggerSketch {
-   static String logMem = '';
+   static void Function(String m) memWriter = (m) => null;
    static bool production = false;
+   static bool disableColor = false;
    static void Function(String m) write = (m) => stdout.write(m);
    static IOSink file_sink;
    static close_sink() => file_sink.close();
    static bool disableFileSink = false;
+
    List<ELevel> levels;
    String name;
    
@@ -105,8 +107,8 @@ class Logger implements LoggerSketch {
       if (dumpOnMemory){
          Logger.write = (String m){
             // writer(m);
-            logMem += 'm\n';
-            stdout.write(m);
+            memWriter(m);
+            print(m);
          };
          file_sink?.close();
       }
@@ -133,9 +135,13 @@ class Logger implements LoggerSketch {
    }
    
    get moduleText {
-      var c = Colorize('\n[$name] ');
-      c.apply(Styles.DEFAULT);
-      return c.toString();
+      if (!disableColor){
+         var c = Colorize('\n[$name] ');
+         c.apply(Styles.DEFAULT);
+         return c.toString();
+      }else{
+         return '\n[$name]';
+      }
    }
    
    void call(String msg, [ELevel level = ELevel.info, bool show_module = true]) {
@@ -166,43 +172,56 @@ class Logger implements LoggerSketch {
    void log(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.log) || production) return;
       if (show_module) write(moduleText);
-      colour(msg.toString(), front: Styles.DARK_GRAY, isBold: false, isItalic: false, isUnderline: false);
+      if (!disableColor)
+         colour(msg.toString(), front: Styles.DARK_GRAY, isBold: false, isItalic: false, isUnderline: false);
    }
    
    void info(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.info) || production) return;
       if (show_module) write(moduleText);
-      colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: false, isItalic: false, isUnderline: false);
+      if (!disableColor)
+         colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: false, isItalic: false, isUnderline: false);
+      else write('$msg');
    }
    
    void sys(Object msg, {bool show_module: true}){
       if (!levels.contains(ELevel.sys) || production) return;
       if (show_module) write(moduleText);
-      colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: true, isItalic: false, isUnderline: false);
+      if (!disableColor)
+         colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: true, isItalic: false, isUnderline: false);
+      else write('$msg');
    }
    
    void debug(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.debug) || production) return;
       if (show_module) write(moduleText);
-      colour(msg.toString(), front: Styles.LIGHT_BLUE, isBold: false, isItalic: false, isUnderline: false);
+      if (!disableColor)
+         colour(msg.toString(), front: Styles.LIGHT_BLUE, isBold: false, isItalic: false, isUnderline: false);
+      else write('$msg');
    }
    
    void critical(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.critical)) return;
       if (show_module) write(moduleText);
-      colour(msg.toString(), front: Styles.LIGHT_RED, isBold: true, isItalic: false, isUnderline: false);
+      if (!disableColor)
+         colour(msg.toString(), front: Styles.LIGHT_RED, isBold: true, isItalic: false, isUnderline: false);
+      else write('$msg');
    }
    
    void error(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.error)) return;
       if (show_module) write(moduleText);
-      colour(msg.toString(), front: Styles.RED, isBold: false, isItalic: false, isUnderline: false);
+      if (!disableColor)
+         colour(msg.toString(), front: Styles.RED, isBold: false, isItalic: false, isUnderline: false);
+      else write('$msg');
    }
    
    void warning(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.warning)) return;
       if (show_module) write(moduleText);
-      colour(msg.toString(), front: Styles.YELLOW, isBold: true, isItalic: false, isUnderline: false);
+      if (!disableColor)
+         colour(msg.toString(), front: Styles.YELLOW, isBold: true, isItalic: false, isUnderline: false);
+      else write('$msg');
    }
 }
 

@@ -583,19 +583,19 @@ class FN {
    
    
    static void
-   prettyPrint(dynamic source, [int level = 0]){
-      print(FN.stringPrettier(source, level));
+   prettyPrint(dynamic source, [int level = 0, bool colorized = true]){
+      print(FN.stringPrettier(source, level, colorized));
    }
    
    static Object
-   stringPrettier(dynamic node, [int level = 0]) {
+   stringPrettier(dynamic node, [int level = 0, bool colorized = true]) {
       var output = '';
       if (node is Map) {
          Map _node = node;
          output += "\t" * level + "{" + '\n';
          _node.forEach((n, value) {
             var keyname = "\t" * (level + 1) + n.toString();
-            var val = FN.stringPrettier(value, level + 1).toString().trim();
+            var val = FN.stringPrettier(value, level + 1, colorized).toString().trim();
             output += '$keyname: ${val},\n';
          });
          return output + "\t" * level + '}';
@@ -604,25 +604,34 @@ class FN {
          List _node = node;
          output += "\t" * level + "[" + '\n';
          _node.forEach((value) {
-            var val = FN.stringPrettier(value, level + 1);
+            var val = FN.stringPrettier(value, level + 1, colorized);
             output += '${val}, \n';
          });
          return output + "\t" * level + ']';
       }
       output += node.toString();
-      var t = Colorize(node.runtimeType.toString());
-      var v = Colorize(output);
-      v.apply(Styles.LIGHT_GREEN);
-      v.apply(Styles.BOLD);
-      t.apply(Styles.LIGHT_MAGENTA);
-      var vstring = v.toString();
+      String vstring; //value string
+      String tstring; //type string
+      if (colorized){
+         var t = Colorize(node.runtimeType.toString());
+         var v = Colorize(output);
+         v.apply(Styles.LIGHT_GREEN);
+         v.apply(Styles.BOLD);
+         t.apply(Styles.LIGHT_MAGENTA);
+         vstring = v.toString();
+         tstring = t.toString();
+      }else{
+         vstring = output;
+         tstring = '';
+      }
+//      var vstring = v.toString();
       var clines = vstring
          .split('\n')
          .length;
       vstring = clines > 1
-                ? _keepIndent(v.toString(), level)
+                ? _keepIndent(vstring, level)
                 : vstring;
-      return "\t" * (level) + '$t $vstring';
+      return "\t" * (level) + '$tstring $vstring';
    }
    
    static void ensureKeys<T>(Map<T, dynamic> map, List<T> keys){
@@ -655,6 +664,20 @@ class FN {
            result ++;
      }
      return result;
+  }
+
+  static List<int> difference(List<int> list, List<int> list2) {
+      if (list == null || list2 == null)
+         throw Exception('list should not be null');
+      final longest  = list.length > list2.length ? list : list2;
+      final shortest = list.length > list2.length ? list2 : list;
+      final result  = <int>[];
+      for (var i = 0; i < longest.length; ++i) {
+         var rec = longest[i];
+         if (!shortest.contains(rec))
+            result.add(rec);
+      }
+      return result;
   }
 }
 
