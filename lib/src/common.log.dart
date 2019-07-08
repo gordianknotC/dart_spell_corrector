@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:colorize/colorize.dart' show Colorize, Styles;
 import 'dart:io';
 
@@ -27,7 +30,7 @@ const LEVELS = [
 ];
 
 
-void colour(String text,
+void colour(String text, void write(String text),
            {Styles front,
               Styles back,
               bool isUnderline: false,
@@ -65,10 +68,11 @@ void colour(String text,
       string.apply(Styles.REVERSE);
    }
 
-   Logger.write('$string\n');
+   write('$string\n');
 }
 
 abstract class LoggerSketch{
+   String name;
    void log(Object logLevel, {bool show_module: true});
    void sys(Object logLevel, {bool show_module: true});
    void info(Object logLevel, {bool show_module: true});
@@ -79,35 +83,195 @@ abstract class LoggerSketch{
    void call(String msg, [ELevel level = ELevel.info, bool show_module = true]);
 }
 
+
+class FileLoggerSupplement  {
+
+}
+
+// SPLITER untested:
+class TimeStampFileLogger{
+   static String SPLITER = '\u000D\u000A';
+   
+   Completer<IOSink> completer;
+   List<String>    logData;
+   List<String>    logDataExtra;
+   IOSink   file_sink;
+   IOSink   extraFile_sink;
+   String   _logPath ;
+   bool     duplicate;
+   bool     storeExtra;
+   int      maxrecs;
+
+   TimeStampFileLogger({String path, this.duplicate = false, this.maxrecs = 100, this.storeExtra = false}){
+      _logPath = path;
+      logData = [];
+      logDataExtra = [];
+      completer = Completer();
+      _fileInit();
+   }
+
+   String get logPath => _logPath;
+   
+   void set logPath(String v) {
+      _logPath = v;
+      _fileInit();
+   }
+   
+   List<String> _limitList(List<String> list){
+      return list.sublist(0, min(list.length, maxrecs - 10));
+   }
+
+   bool isReady(){
+      return completer.isCompleted;
+   }
+   
+   Future<IOSink> _sinkInit(IOSink sink, File file, void logSetter(List<String> list)){
+      completer = Completer();
+      if (sink != null){
+         sink.close().then((e){
+            final data = file.readAsStringSync().trim();
+            if (data.isNotEmpty){
+               logSetter(_limitList(data.split(SPLITER).where((a) => a.trim().isNotEmpty).toList()));
+            }else{
+               logSetter([]);
+            }
+            sink = file.openWrite();
+            completer.complete(sink);
+         });
+      }else{
+         if (!file.existsSync()){
+            print('$logPath not exists');
+            file.writeAsStringSync("");
+         }else{
+            print('$logPath already exists');
+         }
+      
+         final data = file.readAsStringSync().trim();
+         if (data.isNotEmpty){
+            logSetter(_limitList(data.split(SPLITER).where((a) => a.trim().isNotEmpty).toList()));
+         }else{
+            logSetter([]);
+         }
+         sink = file.openWrite(mode:FileMode.append);
+         completer.complete(sink);
+      }
+      return completer.future;
+   }
+   
+   void _fileInit(){
+      _sinkInit(file_sink, File(logPath), (list){
+         logData = list;
+      }).then((fsink){
+         file_sink = fsink;
+         if (storeExtra){
+            _sinkInit(extraFile_sink, File(logPath + '.extra'), (list){
+               logDataExtra = list;
+               final div = logDataExtra.length - logData.length;
+               print('div = $div, logDataExtra: $logDataExtra');
+               if (div < 0){
+                  logDataExtra += List.generate( - div, (a) => "").toList();
+               }else if (logDataExtra.length > logDataExtra.length){
+                  logData      += List.generate(   div, (a) => "").toList();
+               }
+            }).then((esink){
+               extraFile_sink = esink;
+            });
+         }else{
+         
+         }
+      });
+   }
+   
+   static String getTime([DateTime time]){
+      final t = time ?? DateTime.now();
+      final month = ('0' + t.month.toString()).substring(t.month.toString().length -1);
+      final day   = ('0' + t.day.toString())  .substring(t.day.toString()  .length -1);
+      final hour  = ('0' + t.hour.toString()) .substring(t.hour.toString() .length -1);
+      final result = '${t.year}-${month}-${day}-${hour}-${t.minute}';;
+      return result;
+   }
+   
+   void log({String key, String data, String supplement}){
+      key = "${getTime()} $key $data".trim() + SPLITER;
+      if(!duplicate && logData.contains(key)){
+      
+      }else{
+         if (!storeExtra){
+            logData.add(key);
+            file_sink.writeln(key);
+         }else{
+            logDataExtra.add(supplement ?? "");
+            extraFile_sink.writeln(supplement ?? "");
+            logData.add(key);
+            file_sink.writeln(key);
+         }
+      }
+   }
+   
+   Future close() async {
+      completer = null;
+      await extraFile_sink?.close();
+      return file_sink.close();
+   }
+}
+
+
 class Logger implements LoggerSketch {
-   static void Function(String m) memWriter = (m) => null;
+   static Map<String, IOSink> file_sinks = {};
+   
    static bool production = false;
    static bool disableColor = false;
-   static void Function(String m) write = (m) => stdout.write(m);
-   static IOSink file_sink;
-   static close_sink() => file_sink.close();
    static bool disableFileSink = false;
-
-   List<ELevel> levels;
-   String name;
+   static Set<String> disabledModules = Set.from([]);
+   static void Function(String m) fileWriter = (m) => stdout.write(m);
+   void Function(String m) write;
    
-   Logger({this.name, this.levels = LEVELS, void writer(String m), String stream_path, bool dumpOnMemory = false}) {
-      if (writer != null){
-         Logger.write = writer;
+   bool showOutput;
+   String name;
+   String stream_path;
+   List<ELevel> levels;
+   IOSink file_sink;
+	 void Function(String m) memWriter = (m) => null;
+
+	 void close_sink(){
+      file_sink.close();
+      file_sinks.remove(file_sink);
+      file_sinks.removeWhere((k, v) => v == file_sink);
+   }
+   
+   void fileSinkInit(){
+      if (file_sinks.containsKey(stream_path)){
+         file_sink = file_sinks[stream_path];
+      }else{
+         file_sink = File(stream_path).openWrite();
+         file_sinks[stream_path] = file_sink;
       }
+   }
+   
+   Logger({this.name, this.levels = LEVELS, void writer(String m), this.stream_path, bool dumpOnMemory = false, this.showOutput = true}) {
+      if (writer != null){
+         write = writer;
+      }
+      
+      if (!showOutput)
+         disabledModules.add(name);
+      
       if (stream_path != null){
          if (!dumpOnMemory){
-            file_sink = File(stream_path).openWrite();
-            Logger.write = (String m){
+					  fileSinkInit();
+            write = (String m){
                // writer(m);
                file_sink.write(m);
             };
          }
       }
+      
       if (dumpOnMemory){
-         Logger.write = (String m){
-            // writer(m);
+         write = (String m){
             memWriter(m);
+            if (disabledModules.contains(name)){
+               return;
+            };
             print(m);
          };
          file_sink?.close();
@@ -171,16 +335,17 @@ class Logger implements LoggerSketch {
    
    void log(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.log) || production) return;
-      if (show_module) write(moduleText);
+      //if (show_module) write(moduleText);
       if (!disableColor)
-         colour(msg.toString(), front: Styles.DARK_GRAY, isBold: false, isItalic: false, isUnderline: false);
+         colour(msg.toString(),write, front: Styles.DARK_GRAY, isBold: false, isItalic: false, isUnderline: false);
+      else write('$msg');
    }
    
    void info(Object msg, {bool show_module: true}) {
       if (!levels.contains(ELevel.info) || production) return;
       if (show_module) write(moduleText);
       if (!disableColor)
-         colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: false, isItalic: false, isUnderline: false);
+         colour(msg.toString(), write,front: Styles.LIGHT_GRAY, isBold: false, isItalic: false, isUnderline: false);
       else write('$msg');
    }
    
@@ -188,7 +353,7 @@ class Logger implements LoggerSketch {
       if (!levels.contains(ELevel.sys) || production) return;
       if (show_module) write(moduleText);
       if (!disableColor)
-         colour(msg.toString(), front: Styles.LIGHT_GRAY, isBold: true, isItalic: false, isUnderline: false);
+         colour(msg.toString(), write,front: Styles.LIGHT_GRAY, isBold: true, isItalic: false, isUnderline: false);
       else write('$msg');
    }
    
@@ -196,7 +361,7 @@ class Logger implements LoggerSketch {
       if (!levels.contains(ELevel.debug) || production) return;
       if (show_module) write(moduleText);
       if (!disableColor)
-         colour(msg.toString(), front: Styles.LIGHT_BLUE, isBold: false, isItalic: false, isUnderline: false);
+         colour(msg.toString(), write,front: Styles.LIGHT_BLUE, isBold: false, isItalic: false, isUnderline: false);
       else write('$msg');
    }
    
@@ -204,7 +369,7 @@ class Logger implements LoggerSketch {
       if (!levels.contains(ELevel.critical)) return;
       if (show_module) write(moduleText);
       if (!disableColor)
-         colour(msg.toString(), front: Styles.LIGHT_RED, isBold: true, isItalic: false, isUnderline: false);
+         colour(msg.toString(),write, front: Styles.LIGHT_RED, isBold: true, isItalic: false, isUnderline: false);
       else write('$msg');
    }
    
@@ -212,7 +377,7 @@ class Logger implements LoggerSketch {
       if (!levels.contains(ELevel.error)) return;
       if (show_module) write(moduleText);
       if (!disableColor)
-         colour(msg.toString(), front: Styles.RED, isBold: false, isItalic: false, isUnderline: false);
+         colour(msg.toString(),write, front: Styles.RED, isBold: false, isItalic: false, isUnderline: false);
       else write('$msg');
    }
    
@@ -220,7 +385,7 @@ class Logger implements LoggerSketch {
       if (!levels.contains(ELevel.warning)) return;
       if (show_module) write(moduleText);
       if (!disableColor)
-         colour(msg.toString(), front: Styles.YELLOW, isBold: true, isItalic: false, isUnderline: false);
+         colour(msg.toString(),write, front: Styles.YELLOW, isBold: true, isItalic: false, isUnderline: false);
       else write('$msg');
    }
 }

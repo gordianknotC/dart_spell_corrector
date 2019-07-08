@@ -49,8 +49,7 @@ T guard<T>(T expression(), Object message, {bool raiseOnly: true, String error =
          return expression();
       } catch (e, s){
          var trace = StackTrace.fromString(message);
-         if (Logger.file_sink != null)
-            _log("\n[$error] $trace\n$e \n$s", ELevel.error);
+         _log("\n[$error] $trace\n$e \n$s", ELevel.error);
          throw Exception("\n[$error] $trace\n$e \n$s");
       }
    }
@@ -297,6 +296,19 @@ class FN {
       return null;
    }
    
+   static List<List<T>>
+   dimensionList<T>(List<T> list, int dimension){
+      final result = <List<T>>[];
+      for (var i = 0; i < list.length; ++i) {
+         var o = list[i];
+         var reorder = (i / dimension).floor();
+//         print('i: $i, reorder:$reorder');
+         if (i % dimension == 0)
+            result.add(<T>[]);
+         result[reorder].add(o);
+      }
+      return result;
+   }
    
    static E
    range<E>(E s, [int start, int end]){
