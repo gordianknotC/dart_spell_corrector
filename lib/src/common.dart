@@ -268,6 +268,12 @@ String _keepIndent(String source, int level) {
    return source;
 }
 
+class TLinked<T>{
+   void Function(T arg) master;
+   void Function(void Function()) slave;
+   TLinked(this.master, this.slave);
+}
+
 class FN {
    /*static String
    toString(dynamic source){
@@ -289,6 +295,19 @@ class FN {
       }
       return List.filled(t, material);
    }*/
+   static TLinked<T>
+   linkCoupleByCallback<T>(void master(T arg), void slave(void cb())){
+      void Function() relinked_slave;
+      void linked_slave(void cb()){
+         slave(cb);
+         relinked_slave = cb;
+      };
+      void result(T arg){
+         master(arg);
+         relinked_slave();
+      }
+      return TLinked(result, linked_slave);
+   }
    
    static T getEltOrNull<T>(List<T> elements, int id){
       final l = elements.length;
