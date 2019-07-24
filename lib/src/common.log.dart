@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:colorize/colorize.dart' show Colorize, Styles;
 import 'dart:io';
 
-
 enum ELevel {
    log,
    info,
@@ -89,9 +88,8 @@ class FileLoggerSupplement  {
 }
 
 // SPLITER untested:
-class TimeStampFileLogger{
+class TimeStampFileLogger<T>{
    static String SPLITER = '\u000D\u000A';
-   
    Completer<IOSink> completer;
    List<String>    logData;
    List<String>    logDataExtra;
@@ -107,14 +105,14 @@ class TimeStampFileLogger{
       logData = [];
       logDataExtra = [];
       completer = Completer();
-      _fileInit();
+      fileInit();
    }
 
    String get logPath => _logPath;
    
    void set logPath(String v) {
       _logPath = v;
-      _fileInit();
+      fileInit();
    }
    
    List<String> _limitList(List<String> list){
@@ -158,7 +156,7 @@ class TimeStampFileLogger{
       return completer.future;
    }
    
-   void _fileInit(){
+   void fileInit(){
       _sinkInit(file_sink, File(logPath), (list){
          logData = list;
       }).then((fsink){
@@ -191,19 +189,19 @@ class TimeStampFileLogger{
       return result;
    }
    
-   void log({String key, String data, String supplement}){
-      key = "${getTime()} $key $data".trim() + SPLITER;
+   void log({T key, String data, String supplement}){
+      final logline = "${getTime()} $key $data".trim() + SPLITER;
       if(!duplicate && logData.contains(key)){
       
       }else{
          if (!storeExtra){
-            logData.add(key);
-            file_sink.writeln(key);
+            logData.add(logline);
+            file_sink.writeln(logline);
          }else{
             logDataExtra.add(supplement ?? "");
             extraFile_sink.writeln(supplement ?? "");
-            logData.add(key);
-            file_sink.writeln(key);
+            logData.add(logline);
+            file_sink.writeln(logline);
          }
       }
    }
