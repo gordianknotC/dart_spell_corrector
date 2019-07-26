@@ -270,8 +270,16 @@ String _keepIndent(String source, int level) {
 
 class TLinked<T>{
    void Function(T arg) master;
-   void Function(void Function()) slave;
-   TLinked(this.master, this.slave);
+   void Function(void Function()) slaveSetter;
+   void Function() _slave;
+   void Function() get slave{
+      if (_slave == null)
+         throw Exception('slave has not been set');
+      return _slave;
+   }
+   void set slave(void cb()) => _slave = cb;
+   
+   TLinked(this.master, this.slaveSetter);
 }
 
 class FN {
@@ -295,18 +303,22 @@ class FN {
       }
       return List.filled(t, material);
    }*/
+   /// --------------------------------------
+   /// link master function to slave
    static TLinked<T>
-   linkCoupleByCallback<T>(void master(T arg), void slave(void cb())){
+   linkCoupleByCallback<T>(void master(T arg), void slaveSetter(void slave())){
+      TLinked<T> result;
       void Function() relinked_slave;
-      void linked_slave(void cb()){
-         slave(cb);
-         relinked_slave = cb;
+      void linked_slave(void slave()){
+         slaveSetter(slave);
+         relinked_slave = slave;
+         result.slave = slave;
       };
-      void result(T arg){
+      void newMaster(T arg){
          master(arg);
          relinked_slave();
       }
-      return TLinked(result, linked_slave);
+      return result = TLinked(newMaster, linked_slave);
    }
    
    static T getEltOrNull<T>(List<T> elements, int id){
