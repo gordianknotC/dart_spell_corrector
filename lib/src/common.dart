@@ -54,12 +54,12 @@ T guard<T>(T expression(), Object message, {bool raiseOnly: true, String error =
       }
    }
 }
-void raise(Object message, {String error = 'AnError'}) {
+void raise(Object message, {String error = 'AnError', ELevel level}) {
    try {
       try {
          throw(message);
       } catch (e, s) {
-         _log("\n[$error] $message\n$e \n$s", ELevel.error);
+         _log("\n[$error] $message\n$e \n$s", level ?? ELevel.error);
          rethrow;
       }
    } catch (e) {}
@@ -801,6 +801,13 @@ class TwoDBytes {
       
    }
 }
+
+
+
+
+
+
+
 
 void main([arguments]) {
    if (arguments.length == 1 && arguments[0] == '-directRun') {
