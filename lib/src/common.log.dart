@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+
 import 'package:colorize/colorize.dart' show Colorize, Styles;
 import 'dart:io';
 
@@ -71,6 +72,7 @@ class FileLoggerSupplement {
 
 // SPLITER untested:
 class TimeStampFileLogger<T> {
+	static const String EXTRA_SUFFIX = '.extra';
 	static String SPLITER = '\u000D\u000A';
 	Completer<IOSink> completer;
 	List<String> logData;
@@ -84,7 +86,7 @@ class TimeStampFileLogger<T> {
 	int maxrecs;
 	
 	TimeStampFileLogger(
-			{String path, this.duplicate = false, this.maxrecs = 100, this.storeExtra = false}) {
+			{String path, this.duplicate = false, this.maxrecs = 200, this.storeExtra = false}) {
 		_logPath = path;
 		logData = [];
 		logDataExtra = [];
@@ -100,24 +102,28 @@ class TimeStampFileLogger<T> {
 	}
 	
 	List<String> _limitList(List<String> list) {
-		return list.sublist(0, min(list.length, maxrecs - 10));
+		return list.sublist(max(0, list.length - maxrecs), list.length);
+	}
+	
+	void _limitLogData(List<String> finalList, File file){
+		//file.writeAsStringSync(finalList.join(SPLITER) + SPLITER);
 	}
 	
 	bool isReady() {
 		return completer.isCompleted;
 	}
 	
-	Future<IOSink> _sinkInit(IOSink sink, File file,
-			void logSetter(List<String> list)) {
+	Future<IOSink> _sinkInit(IOSink sink, File file, void logSetter(List<String> list)) {
 		completer = Completer();
 		if (sink != null) {
 			sink.close().then((e) {
-				final data = file.readAsStringSync().trim();
+				final data = file.readAsStringSync();
 				if (data.isNotEmpty) {
-					logSetter(_limitList(data.split(SPLITER).where((a) =>
-					a
-							.trim()
-							.isNotEmpty).toList()));
+					final origList 	= data.split(SPLITER).where((a) => a.trim().isNotEmpty).toList();
+					final finalList = _limitList(origList);
+					if (origList.length > finalList.length)
+						_limitLogData(finalList, file);
+					logSetter(finalList);
 				} else {
 					logSetter([]);
 				}
@@ -126,18 +132,19 @@ class TimeStampFileLogger<T> {
 			});
 		} else {
 			if (!file.existsSync()) {
-				print('$logPath not exists');
+				print('${file.path} not exists');
 				file.writeAsStringSync("");
 			} else {
-				print('$logPath already exists');
+				print('${file.path} already exists');
 			}
 			
 			final data = file.readAsStringSync().trim();
 			if (data.isNotEmpty) {
-				logSetter(_limitList(data.split(SPLITER).where((a) =>
-				a
-						.trim()
-						.isNotEmpty).toList()));
+				final origList 	= data.split(SPLITER).where((a) => a.trim().isNotEmpty).toList();
+				final finalList = _limitList(origList);
+				if (origList.length > finalList.length)
+					_limitLogData(finalList, file);
+				logSetter(finalList);
 			} else {
 				logSetter([]);
 			}
@@ -151,16 +158,22 @@ class TimeStampFileLogger<T> {
 		_sinkInit(file_sink, File(logPath), (list) {
 			logData = list;
 		}).then((fsink) {
+			final extraFile = File(logPath + EXTRA_SUFFIX);
 			file_sink = fsink;
 			if (storeExtra) {
-				_sinkInit(extraFile_sink, File(logPath + '.extra'), (list) {
+				_sinkInit(extraFile_sink, extraFile, (list) {
+					final refillExtra = list.isEmpty && logData.isNotEmpty;
 					logDataExtra = list;
 					final div = logDataExtra.length - logData.length;
 					print('div = $div, logDataExtra: $logDataExtra');
 					if (div < 0) {
-						logDataExtra += List.generate(-div, (a) => "").toList();
+						logDataExtra += List.generate(-div, (a) => "0$SPLITER").toList();
 					} else if (logDataExtra.length > logDataExtra.length) {
-						logData += List.generate(div, (a) => "").toList();
+						logData += List.generate(div, (a) => "0$SPLITER").toList();
+					}
+					if (refillExtra){
+						final content = logDataExtra.join("");
+						extraFile.writeAsStringSync(content);
 					}
 				}).then((esink) {
 					extraFile_sink = esink;
@@ -171,7 +184,7 @@ class TimeStampFileLogger<T> {
 		});
 	}
 	
-	static String getTime([DateTime time]) {
+	static String getTime([DateTime time, String dsplit="-", String sector="-" ,String tsplit="-"]) {
 		final t = time ?? DateTime.now();
 		final month = ('0' + t.month.toString()).substring(t.month
 				.toString()
@@ -194,12 +207,12 @@ class TimeStampFileLogger<T> {
 		} else {
 			if (!storeExtra) {
 				logData.add(logline);
-				file_sink.writeln(logline);
+				file_sink.write(logline);
 			} else {
 				logDataExtra.add(supplement ?? "");
-				extraFile_sink.writeln(supplement ?? "");
+				extraFile_sink.write(supplement ?? "");
 				logData.add(logline);
-				file_sink.writeln(logline);
+				file_sink.write(logline);
 			}
 		}
 	}
@@ -501,5 +514,26 @@ class Logger implements LoggerSketch {
 			_outputFlutter(msg,'W', show_module);
 		}
 	}
+	
+	String toJson(){
+		return "";
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
