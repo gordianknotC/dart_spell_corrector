@@ -275,6 +275,7 @@ class singletonIS {
 	bool
 	even(int num) => num != 0 && (num % 2 == 0);
 	
+	
 }
 
 String _keepIndent(String source, int level) {
