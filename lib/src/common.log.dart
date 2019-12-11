@@ -96,7 +96,7 @@ class TimeStampFileLogger<T> {
 	
 	String get logPath => _logPath;
 	
-	void set logPath(String v) {
+	set logPath(String v) {
 		_logPath = v;
 		fileInit();
 	}
@@ -321,7 +321,7 @@ class Logger implements LoggerSketch {
 		return string;
 	}
 	
-	static String colourize(String text, void write(String text, bool newline)) {
+	static void colourize(String text, void write(String text, bool newline)) {
 		write(text, true);
 	}
 	

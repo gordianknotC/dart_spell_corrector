@@ -38,12 +38,13 @@ T guard<T>(T expression(), Object message, {bool raiseOnly: true, String error =
 			return expression();
 		} catch (e, s) {
 			try {
-				var trace = StackTrace.fromString(message);
+				var trace = StackTrace.fromString(message.toString());
 				_D("\n[$error] $trace\n$e \n$s", ELevel.error);
 				rethrow;
-			} catch (e, s) {
+			} catch (e) {
 				//untested: unbolock this if ...
 				//rethrow;
+				return null;
 			}
 		}
 	} else {
@@ -61,9 +62,9 @@ T Function(C) observerGuard<T, C>(T expression(), Object message) {
 		try {
 			return expression();
 		} catch (e, s) {
-			print("[ERROR] $message\n$e\n$s");
+			_D.debug("[ERROR] $message\n$e\n$s");
 			rethrow;
-		};
+		}
 	};
 }
 
@@ -97,9 +98,9 @@ void GP(String message, Function(String _) cb, [int level = 1]) {
 	final HEADING = (MIN_COL - TITLE_L) ~/ 2; //note: ~/2 indicates divide by 2 and transform it into int;
 	final HORIZONTAL = H * MIN_COL;
 	final TITLE = S * HEADING + message;
-	print(HORIZONTAL);
-	print(TITLE);
-	print(HORIZONTAL);
+	_D.debug(HORIZONTAL);
+	_D.debug(TITLE);
+	_D.debug(HORIZONTAL);
 	cb('\t' * level);
 }
 
@@ -302,7 +303,7 @@ class TLinked<T> {
 		return _slave;
 	}
 	
-	void set slave(void cb()) => _slave = cb;
+	set slave(void cb()) => _slave = cb;
 	
 	TLinked(this.master, this.slaveSetter);
 }
@@ -340,7 +341,7 @@ class TLinked<T> {
    Future<Isolate> execute() async {
       _isolate = await Isolate.spawn<T>(_onIsolateExecute, data);
       receivePort.listen((response) {
-         print('receive isolate response: ${response.runtimeType}');
+         _D.debug('receive isolate response: ${response.runtimeType}');
          _onReceive(response as T);
       });
       return _isolate;
@@ -413,9 +414,9 @@ class Sort<T> {
 				}
 				a = b;
 			}
-			return cate;;
+			return cate;
 		} catch (e, s) {
-			print('[ERROR] Sort.byDateDec failed: \n$s');
+			_D.debug('[ERROR] Sort.byDateDec failed: \n$s');
 			rethrow;
 		}
 	}
@@ -424,7 +425,7 @@ class Sort<T> {
 		T a, b;
 		List<T> linearStack = [];
 		Map<DateTime, List<T>> cate = {};
-		bool Function() isNotFirstRecord = () => a != null;
+		//bool Function() isNotFirstRecord = () => a != null;
 		ntagRecords.sort((a, b) => date(a).difference(date(b)).inMilliseconds);
 		
 		for (var i = ntagRecords.length - 1; i >= 0; i --) {
@@ -527,8 +528,8 @@ class Sort<T> {
 			}
 			a = b;
 		}
-		print('cate.keys  : ${cate.keys}');
-		print('cate.values: ${cate.values}');
+		_D.debug('cate.keys  : ${cate.keys}');
+		_D.debug('cate.values: ${cate.values}');
 		return cate;
 	}
 }
@@ -674,7 +675,7 @@ class FN {
 		for (var i = 0; i < list.length; ++i) {
 			var o = list[i];
 			var reorder = (i / dimension).floor();
-//         print('i: $i, reorder:$reorder');
+//         _D.debug('i: $i, reorder:$reorder');
 			if (i % dimension == 0)
 				result.add(<T>[]);
 			result[reorder].add(o);
@@ -730,9 +731,7 @@ class FN {
 	
 	static List<String>
 	split(String data, String ptn, [int max = 1]) {
-		var d = data,
-				pre,
-				suf;
+		String d = data, pre, suf;
 		var ret = <String>[];
 		for (var i = 0; i < max; ++i) {
 			var idx = d.indexOf(ptn);
@@ -752,7 +751,7 @@ class FN {
 	static int
 	findIndex<T>(List<T> data, bool search(T element)) {
 		int result;
-		FN.forEach(data, (el, [i]) {
+		FN.forEach(data, (T el, [i]) {
 			if (search(el)) {
 				result = i;
 				return true;
@@ -981,7 +980,7 @@ class FN {
 	
 	static void
 	prettyPrint(dynamic source, [int level = 0, bool colorized = true]) {
-		print(FN.stringPrettier(source, level, colorized));
+		_D.debug(FN.stringPrettier(source, level, colorized));
 	}
 	
 	static Object
@@ -1093,15 +1092,15 @@ class TwoDBytes {
 	
 	static Uint8List twoDtoOneDList(List<List<int>> tdim, [int lengthByes = 4]) {
 		List<int> ret = [tdim.length];
-		print('convert ${tdim.length} lists into one list');
+		_D.debug('convert ${tdim.length} lists into one list');
 		for (var i = 0; i < tdim.length; ++i) {
 			final Uint8List rec_data = Uint8List.fromList(tdim[i]);
 			final rec_data_length = rec_data.lengthInBytes;
 			final length_in_bytes = intToBytes(rec_data_length, lengthBytes: lengthByes);
-			print('flag: $i');
-			print('rec_data: ${rec_data.sublist(0, 20)}...');
-			print('rec_data_legnth in bytes: $rec_data_length');
-			print('num_of_length_bytes: $length_in_bytes, ${bytesToInt(length_in_bytes)}');
+			_D.debug('flag: $i');
+			_D.debug('rec_data: ${rec_data.sublist(0, 20)}...');
+			_D.debug('rec_data_legnth in bytes: $rec_data_length');
+			_D.debug('num_of_length_bytes: $length_in_bytes, ${bytesToInt(length_in_bytes)}');
 			ret.add(lengthByes);
 			ret.addAll(length_in_bytes);
 			ret.addAll(rec_data);
@@ -1137,7 +1136,7 @@ class TwoDBytes {
 	Stream<Uint8List> get records async* {
 		var r = 2;
 		var l = 2;
-		List<int> data_length;
+		Uint8List data_length;
 		int numberof_data_length;
 		try {
 			for (var flag = 0; flag < recordsLength; ++flag) {
