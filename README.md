@@ -1,8 +1,9 @@
 版本太舊，待更新，目前不建識使用
 
 ## 內容
-- spell corrector [Spell]
-  以 dart 實作 spell corrector https://norvig.com/spell-correct.html
+- spell corrector 
+
+  [Spell] 以 dart 實作 spell corrector https://norvig.com/spell-correct.html
 - FN
   - head / tail / count / countBy / unique / range
   - asTwoDimensionalList 
