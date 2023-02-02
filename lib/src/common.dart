@@ -584,29 +584,9 @@ class FN {
 				.key;
 	}
 	
-	/*static String
-   toString(dynamic source){
-   
-   }
-   static num
-   toNum(String source){
-   
-   }
-   static int
-   toInt(String source){
-   
-   }*/
-	
-	/*static List<E>
-   repeat<E>({E fn(), E material ,int t}){
-      if (fn != null){
-         return List.generate(t, fn);
-      }
-      return List.filled(t, material);
-   }*/
-	
 	/// --------------------------------------
-	/// link master function to slave
+	/// link master function to slave one
+	/// FIXME: untested
 	static TLinked<T>
 	linkCallback<T>(void master(T arg), void slaveSetter(void slave())) {
 		TLinked<T> result;
@@ -628,7 +608,14 @@ class FN {
 		if (id < l) return elements[id];
 		return null;
 	}
-	
+
+	///
+	/// 強制轉為二維陣列
+	/// __example__
+	/// ```dart
+	/// expect(FN.asTwoDimensionList(list, 1), equals([[1], [2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12]]));
+	/// expect(FN.asTwoDimensionList(list, 2), orderedEquals([[1,2], [3,4],[5,6],[7,8],[9,10],[11,12]]));
+	/// ```
 	static List<List<T>>
 	asTwoDimensionList<T>(List<T> list, int dimension) {
 		final result = <List<T>>[];
