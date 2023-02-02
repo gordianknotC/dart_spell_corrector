@@ -1,22 +1,10 @@
-A library for Dart developers.
 
-Created from templates made available by Stagehand under a BSD-style
-[license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
 
-## Usage
 
-A simple usage example:
+## 內容
+- spell corrector
+  以 dart 實作 https://norvig.com/spell-correct.html
+- FN
+  
+- logger
 
-```dart
-import 'package:common/common.dart';
-
-main() {
-  var awesome = new Awesome();
-}
-```
-
-## Features and bugs
-
-Please file feature requests and bugs at the [issue tracker][tracker].
-
-[tracker]: http://example.com/issues/replaceme

@@ -34,22 +34,22 @@ void main(){
    final list = List.generate(12, (i) => i+1).toList();
    group("FN.dimensionList", (){
       test("transform one dimension into one dimension", (){
-         expect(FN.dimensionList(list, 1), equals(
+         expect(FN.asTwoDimensionList(list, 1), equals(
             [[1], [2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12]]
          ));
       });
       test("transform one dimension into two dimension", (){
-         expect(FN.dimensionList(list, 2), orderedEquals(
+         expect(FN.asTwoDimensionList(list, 2), orderedEquals(
             [[1,2], [3,4],[5,6],[7,8],[9,10],[11,12]]
          ));
       });
       test("transform one dimension into three dimension", (){
-         expect(FN.dimensionList(list, 3), orderedEquals(
+         expect(FN.asTwoDimensionList(list, 3), orderedEquals(
             [[1,2,3], [4,5,6],[7,8,9],[10,11,12]]
          ));
       });
       test("transform one dimension into four dimension", (){
-         expect(FN.dimensionList(list, 3), orderedEquals(
+         expect(FN.asTwoDimensionList(list, 3), orderedEquals(
             [[1,2,3,4], [5,6,7,8],[9,10,11,12]]
          ));
       });

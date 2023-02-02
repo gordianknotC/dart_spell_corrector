@@ -1,10 +1,9 @@
 import 'package:common/src/common.log.dart' show ELevel, Logger;
 import 'package:common/src/common.dart' show FN;
 /*
-      codes implemented from
-      Author: Peter Norvig
-      Site  : http://norvig.com/spell-correct.html
-
+following code was re-implemented in dart borrowed from
+Peter Norvig
+Site  : http://norvig.com/spell-correct.html
 */
 
 final _LETTERS = 'abcdefghijklmnopqrstuvwxyz'.split('');

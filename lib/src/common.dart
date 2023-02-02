@@ -308,46 +308,6 @@ class TLinked<T> {
 	TLinked(this.master, this.slaveSetter);
 }
 
-/*abstract class IsolateParamSketch<T>{
-   SendPort get sendport => receivePort.sendPort;
-   ReceivePort receivePort;
-   Isolate _isolate;
-   T data;
-   
-   void Function()         onIsolateCompleted;
-   void Function(Object)   onIsolateError;
-
-   IsolateParamSketch(this.receivePort, this.data, {this.onIsolateCompleted, this.onIsolateError});
-   
-   void _onReceive(T s){
-   
-   }
-   void _onIsolateExecute(T s){
-      onIsolateExecute(s).then((e){
-         sendport.send();
-         onIsolateCompleted();
-      }).catchError((e){
-         onIsolateError(e);
-      });
-   }
-   
-   Future onIsolateExecute(T s);
-   void stopIsolate(){
-      if (_isolate != null) {
-         _isolate.kill(priority: Isolate.immediate);
-         _isolate = null;
-      }
-   }
-   Future<Isolate> execute() async {
-      _isolate = await Isolate.spawn<T>(_onIsolateExecute, data);
-      receivePort.listen((response) {
-         _D.debug('receive isolate response: ${response.runtimeType}');
-         _onReceive(response as T);
-      });
-      return _isolate;
-   }
-}*/
-
 class Sort<T> {
 	List<T> ntagRecords;
 	
@@ -648,7 +608,7 @@ class FN {
 	/// --------------------------------------
 	/// link master function to slave
 	static TLinked<T>
-	linkCoupleByCallback<T>(void master(T arg), void slaveSetter(void slave())) {
+	linkCallback<T>(void master(T arg), void slaveSetter(void slave())) {
 		TLinked<T> result;
 		void Function() relinked_slave;
 		void linked_slave(void slave()) {
@@ -670,7 +630,7 @@ class FN {
 	}
 	
 	static List<List<T>>
-	dimensionList<T>(List<T> list, int dimension) {
+	asTwoDimensionList<T>(List<T> list, int dimension) {
 		final result = <List<T>>[];
 		for (var i = 0; i < list.length; ++i) {
 			var o = list[i];
