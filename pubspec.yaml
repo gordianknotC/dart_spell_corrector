@@ -1,4 +1,6 @@
-name: common
+name: spell_corrector
+publish_to: none
+repository: https://github.com/gordianknotC/spell_corrector.git
 description: A starting point for Dart libraries or applications.
 # version: 1.0.0
 # homepage: https://www.example.com
@@ -7,8 +9,6 @@ description: A starting point for Dart libraries or applications.
 environment:
   sdk: ">=2.0.0-dev.68.0 <3.0.0"
 
-dependencies:
-  colorize: ^2.0.0    #support colorizing console color
 
 dev_dependencies:
   test: ^1.0.0
