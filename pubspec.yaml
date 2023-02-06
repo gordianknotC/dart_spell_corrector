@@ -1,7 +1,8 @@
-name: spell_corrector
+name: spelling_corrector
 publish_to: none
-repository: https://github.com/gordianknotC/spell_corrector.git
+repository: https://github.com/gordianknotC/dart_spelling_corrector.git
 description: A starting point for Dart libraries or applications.
+version: 0.0.1
 # version: 1.0.0
 # homepage: https://www.example.com
 # author: gordianknot <email@example.com>
