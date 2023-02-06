@@ -3,4 +3,4 @@
 /// More dartdocs go here.
 library spell_corrector;
 
-export 'src/common.spell.dart' show Spell, CamelCaseTyping;
+export 'src/common.spell.dart' show Spelling, CamelCaseTyping;

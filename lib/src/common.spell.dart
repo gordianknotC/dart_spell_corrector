@@ -111,8 +111,8 @@ typedef TSpellMatcher = bool Function(String db, String typing);
          );
       });
 */
-class Spell {
-   static Map<Set<String>, Spell> _instances;
+class Spelling {
+   static Map<Set<String>, Spelling> _instances;
    bool camelCase;
    bool useCache;
    bool preRender;
@@ -122,15 +122,15 @@ class Spell {
    Map<String, Set<String>> CACHE;
    bool Function(String db, String type) matcher;
    
-   factory Spell({Set<String> dict, bool camelCase = false, bool useCache = false, bool preRender = true, TSpellMatcher matcher}){
-      var ret = Spell.init(dict: dict, camelCase: camelCase, useCache: useCache, preRender: preRender, matcher: matcher);
+   factory Spelling({Set<String> dict, bool camelCase = false, bool useCache = false, bool preRender = true, TSpellMatcher matcher}){
+      var ret = Spelling.init(dict: dict, camelCase: camelCase, useCache: useCache, preRender: preRender, matcher: matcher);
       return ret;
    }
    
-   Spell.init({Set<String> dict, this.camelCase, this.useCache, this.preRender, this.matcher}){
-      Spell._instances ??= {};
+   Spelling.init({Set<String> dict, this.camelCase, this.useCache, this.preRender, this.matcher}){
+      Spelling._instances ??= {};
       this.matcher = matcher ?? (db, typo) => db == typo;
-      if (Spell._instances.containsKey(dict)) {
+      if (Spelling._instances.containsKey(dict)) {
          //pass:
       } else {
          CACHE ??= {};
@@ -194,7 +194,7 @@ class Spell {
    getWordTypos(String word, [int distance = 1]) {
       if (distance == 1) {
          if (useCache && CACHE.containsKey(word)) return CACHE[word];
-         var possibilities = Spell.wordTypos(word);
+         var possibilities = Spelling.wordTypos(word);
          if (useCache) {
             CACHE[word] = possibilities;
             possibilities.forEach((key) => CACHE[key] = possibilities);
