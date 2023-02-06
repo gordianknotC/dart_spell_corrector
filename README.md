@@ -1,5 +1,5 @@
-以 dart 實作 spelling corrector, 待補足單元測試後 publish
-https://norvig.com/spell-correct.html
+以 dart 實作 spelling corrector(https://norvig.com/spell-correct.html), 待補足單元測試後 publish
+
 
 ## Usage
 ```yaml
